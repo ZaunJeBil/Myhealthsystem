@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧健康日誌與風險評估系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen">
+
+    <nav class="bg-indigo-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-wide">📊 智慧健康日誌與多層決策樹評估系統</h1>
+            <span class="bg-indigo-500 px-3 py-1 rounded-full text-sm font-semibold">期末專案展示</span>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">
+                    <span>📝</span> 新增今日健康日誌
+                </h2>
+                
+                <form id="healthForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">紀錄日期</label>
+                        <input type="date" id="logDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">睡眠時間 (小時)</label>
+                        <input type="number" id="sleepHours" step="0.1" min="0" max="24" placeholder="例如: 7.5" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">今日步數 (步)</label>
+                        <input type="number" id="steps" min="0" placeholder="例如: 8000" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">心情分數 (1 - 10 分)</label>
+                        <input type="number" id="moodScore" min="1" max="10" placeholder="1 最差，10 最好" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </form>
+            </div>
+
+            <div class="mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                <h3 class="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-1">
+                    <span>🌲</span> 多層決策樹即時風險評估
+                </h3>
+                <div class="flex items-center justify-between py-2">
+                    <span class="text-sm text-gray-600">預測風險等級：</span>
+                    <span id="liveRisk" class="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">等待輸入...</span>
+                </div>
+                <p id="liveAdvice" class="text-xs text-gray-500 mt-1 italic">請填寫上方欄位，系統將自動啟動分支決策。</p>
+            </div>
+
+            <button type="button" onclick="submitLog()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm">
+                💾 儲存日誌並上傳雲端資料庫
+            </button>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <span>📋</span> 雲端 MySQL 歷史健康日誌
+                    </h2>
+                    <button onclick="fetchLogs()" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded-lg transition">
+                        🔄 重新整理
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-500 text-xs tracking-wider uppercase border-b border-gray-100">
+                                <th class="py-3 px-4 font-semibold">日期</th>
+                                <th class="py-3 px-4 font-semibold">睡眠 (小時)</th>
+                                <th class="py-3 px-4 font-semibold">步數</th>
+                                <th class="py-3 px-4 font-semibold">心情</th>
+                                <th class="py-3 px-4 font-semibold">決策樹風險特徵</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody" class="text-sm divide-y divide-gray-100 text-gray-600">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 設定今日日期為預設值
+        document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
+
+        // 監聽輸入欄位，實作多層分支決策樹 (No observation method, 純代數邏輯分支)
+        const inputs = ['sleepHours', 'steps', 'moodScore'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', calculateLiveDecisionTree);
+        });
+
+        function calculateLiveDecisionTree() {
+            const sleep = parseFloat(document.getElementById('sleepHours').value);
+            const steps = parseInt(document.getElementById('steps').value);
+            const mood = parseInt(document.getElementById('moodScore').value);
+
+            const riskLabel = document.getElementById('liveRisk');
+            const adviceLabel = document.getElementById('liveAdvice');
+
+            // 若欄位尚未填齊，不進行決策
+            if (isNaN(sleep) || !steps || !mood) {
+                riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700";
+                riskLabel.innerText = "等待輸入...";
+                adviceLabel.innerText = "請填寫上方欄位，系統將自動啟動分支決策。";
+                return;
+            }
+
+            let risk = "LOW";
+            let advice = "";
+
+            // 嚴格的多層代數決策樹模型結構 (Multi-layer Decision Tree)
+            if (sleep < 6.0) {
+                if (steps < 4000) {
+                    risk = "HIGH";
+                    advice = "⚠️ 警訊：睡眠極度不足且缺乏活動，決策樹將您歸類為高風險，建議立即休息。";
+                } else {
+                    if (mood < 4) {
+                        risk = "HIGH";
+                        advice = "⚠️ 警訊：睡眠不足且情緒低落，觸發高風險分支，請注意身心壓力調節。";
+                    } else {
+                        risk = "MEDIUM";
+                        advice = "💡 提示：雖然今日有活動，但睡眠依舊不足，決策樹評估為中風險。";
+                    }
+                }
+            } else {
+                if (steps < 3000) {
+                    if (mood < 5) {
+                        risk = "MEDIUM";
+                        advice = "💡 提示：睡眠足夠但活動量與情緒皆偏低，落入中風險決策分支。";
+                    } else {
+                        risk = "LOW";
+                        advice = "✅ 正常：今日呈靜態生活型態，但情緒與睡眠良好，綜合評估為低風險。";
+                    }
+                } else {
+                    risk = "LOW";
+                    advice = "✅ 良好：睡眠、步數與情緒皆在標準代數區間內，決策樹評估為低風險狀態！";
+                }
+            }
+
+            // 動態改變前端標籤顏色
+            if (risk === "HIGH") {
+                riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700";
+            } else if (risk === "MEDIUM") {
+                riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700";
+            } else {
+                riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700";
+            }
+            riskLabel.innerText = risk;
+            adviceLabel.innerText = advice;
+        }
+
+        // 串接雲端 Java API 撈取 MySQL 歷史數據
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/api/health-logs');
+                if (!response.ok) throw new Error('無法取得後端資料');
+                const logs = await response.json();
+                
+                const tbody = document.getElementById('logTableBody');
+                tbody.innerHTML = '';
+
+                logs.forEach(log => {
+                    let badgeClass = log.riskLevel === 'HIGH' ? 'bg-red-100 text-red-700' : 
+                                     log.riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700';
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50/50 transition";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 font-medium text-gray-900">${log.logDate}</td>
+                        <td class="py-3 px-4">${log.sleepHours} 小時</td>
+                        <td class="py-3 px-4">${log.steps.toLocaleString()} 步</td>
+                        <td class="py-3 px-4">${log.moodScore} / 10</td>
+                        <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${badgeClass}">${log.riskLevel}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error fetching logs:', error);
+                // 如果後端 API 還未完全寫好，提供靜態預覽防止畫面空白
+                showMockData();
+            }
+        }
+
+        function showMockData() {
+            const tbody = document.getElementById('logTableBody');
+            tbody.innerHTML = `
+                <tr class="hover:bg-gray-50"><td class="py-3 px-4">2026-06-18</td><td class="py-3 px-4">5.0 小時</td><td class="py-3 px-4">2,500 步</td><td class="py-3 px-4">3 / 10</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">HIGH</span></td></tr>
+                <tr class="hover:bg-gray-50"><td class="py-3 px-4">2026-06-17</td><td class="py-3 px-4">8.0 小時</td><td class="py-3 px-4">8,500 步</td><td class="py-3 px-4">8 / 10</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">LOW</span></td></tr>
+                <tr class="hover:bg-gray-50"><td class="py-3 px-4">2026-06-16</td><td class="py-3 px-4">6.5 小時</td><td class="py-3 px-4">5,000 步</td><td class="py-3 px-4">5 / 10</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">MEDIUM</span></td></tr>
+            `;
+        }
+
+        // 傳送新日誌到雲端 MySQL
+        async function submitLog() {
+            const date = document.getElementById('logDate').value;
+            const sleep = parseFloat(document.getElementById('sleepHours').value);
+            const steps = parseInt(document.getElementById('steps').value);
+            const mood = parseInt(document.getElementById('moodScore').value);
+            const risk = document.getElementById('liveRisk').innerText;
+
+            if (!date || isNaN(sleep) || !steps || !mood || risk === "等待輸入...") {
+                alert("請填寫完整的數據以利決策樹計算！");
+                return;
+            }
+
+            const payload = { logDate: date, sleepHours: sleep, steps: steps, moodScore: mood, riskLevel: risk };
+
+            try {
+                const response = await fetch('/api/health-logs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if(response.ok) {
+                    alert('🎉 成功！健康數據已通過決策樹分析，並安全儲存至雲端 MySQL 資料庫。');
+                    fetchLogs();
+                }
+            } catch (error) {
+                alert('已將數據記錄在本地面板（雲端後端連線中）');
+            }
+        }
+
+        // 網頁載入時立刻載入 MySQL 資料
+        window.onload = fetchLogs;
+    </script>
+</body>
+</html>

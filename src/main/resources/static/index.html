@@ -6,18 +6,18 @@
     <title>智慧健康日誌與風險評估系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 font-sans min-h-screen">
+<body class="bg-gray-50 font-sans h-screen flex flex-col overflow-hidden">
 
-    <nav class="bg-indigo-600 text-white shadow-md">
+    <nav class="bg-indigo-600 text-white shadow-md flex-none">
         <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-xl font-bold tracking-wide">📊 智慧健康日誌與多層決策樹評估系統</h1>
             <span class="bg-indigo-500 px-3 py-1 rounded-full text-sm font-semibold">期末極致改良版</span>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1 overflow-hidden w-full">
         
-        <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+        <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-full overflow-y-auto">
             <div>
                 <h2 id="formTitle" class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">
                     <span>📝</span> 新增今日健康日誌
@@ -57,52 +57,52 @@
                 </form>
             </div>
 
-            <div class="mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                <h3 class="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-1">
-                    <span>🌲</span> 多層決策樹即時風險評估
-                </h3>
-                <div class="flex items-center justify-between py-2">
-                    <span class="text-sm text-gray-600">預測風險等級：</span>
-                    <span id="liveRisk" class="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">等待輸入...</span>
+            <div>
+                <div class="mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                    <h3 class="text-sm font-bold text-indigo-800 mb-2 flex items-center gap-1">
+                        <span>🌲</span> 多層決策樹即時風險評估
+                    </h3>
+                    <div class="flex items-center justify-between py-2">
+                        <span class="text-sm text-gray-600">預測風險等級：</span>
+                        <span id="liveRisk" class="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">等待輸入...</span>
+                    </div>
+                    <p id="liveAdvice" class="text-xs text-gray-500 mt-1 italic">請填寫正確範圍內的數據，系統將自動啟動分支決策。</p>
                 </div>
-                <p id="liveAdvice" class="text-xs text-gray-500 mt-1 italic">請填寫正確範圍內的數據，系統將自動啟動分支決策。</p>
-            </div>
 
-            <button type="button" id="submitBtn" onclick="submitLog()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed">
-                💾 儲存日誌並上傳雲端資料庫
-            </button>
-            <button type="button" id="cancelEditBtn" onclick="resetForm()" class="w-full mt-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-1 px-4 rounded-lg transition duration-200 text-sm hidden">
-                取消修改
-            </button>
+                <button type="button" id="submitBtn" onclick="submitLog()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed">
+                    💾 儲存日誌並上傳雲端資料庫
+                </button>
+                <button type="button" id="cancelEditBtn" onclick="resetForm()" class="w-full mt-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-1 px-4 rounded-lg transition duration-200 text-sm hidden">
+                    取消修改
+                </button>
+            </div>
         </div>
 
-        <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <span>📋</span> 雲端 MySQL 歷史健康日誌
-                    </h2>
-                    <button onclick="fetchLogs()" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded-lg transition">
-                        🔄 重新整理
-                    </button>
-                </div>
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full overflow-hidden">
+            <div class="flex justify-between items-center mb-4 border-b pb-2 flex-none">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <span>📋</span> 雲端 MySQL 歷史健康日誌
+                </h2>
+                <button onclick="fetchLogs()" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded-lg transition">
+                    🔄 重新整理
+                </button>
+            </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 text-gray-500 text-xs tracking-wider uppercase border-b border-gray-100">
-                                <th class="py-3 px-4 font-semibold">日期</th>
-                                <th class="py-3 px-4 font-semibold">睡眠</th>
-                                <th class="py-3 px-4 font-semibold">步數</th>
-                                <th class="py-3 px-4 font-semibold">心情</th>
-                                <th class="py-3 px-4 font-semibold">決策風險</th>
-                                <th class="py-3 px-4 font-semibold text-center">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="logTableBody" class="text-sm divide-y divide-gray-100 text-gray-600">
-                            </tbody>
-                    </table>
-                </div>
+            <div class="overflow-y-auto flex-1 pr-1">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-white z-10 shadow-sm">
+                        <tr class="bg-gray-50 text-gray-500 text-xs tracking-wider uppercase border-b border-gray-100">
+                            <th class="py-3 px-4 font-semibold">日期</th>
+                            <th class="py-3 px-4 font-semibold">睡眠</th>
+                            <th class="py-3 px-4 font-semibold">步數</th>
+                            <th class="py-3 px-4 font-semibold">心情</th>
+                            <th class="py-3 px-4 font-semibold">決策風險</th>
+                            <th class="py-3 px-4 font-semibold text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody" class="text-sm divide-y divide-gray-100 text-gray-600">
+                        </tbody>
+                </table>
             </div>
         </div>
     </main>
@@ -110,7 +110,6 @@
     <script>
         document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
 
-        // 監聽輸入欄位進行即時防禦與決策樹分析
         const fields = [
             { id: 'sleepHours', min: 0, max: 24, errId: 'sleepError' },
             { id: 'steps', min: 0, max: 99999, errId: 'stepsError' },
@@ -123,7 +122,7 @@
             });
         });
 
-        let allLoadedLogs = []; // 快取所有日誌
+        let allLoadedLogs = [];
 
         function validateAndCalculate() {
             let hasError = false;
@@ -140,7 +139,6 @@
                 }
             });
 
-            // 如果有數字超出範圍，鎖定儲存按鈕
             document.getElementById('submitBtn').disabled = hasError;
 
             if (hasError) {
@@ -220,7 +218,6 @@
             }
         }
 
-        // 點擊修改：將資料帶回左側表單
         function startEdit(id) {
             const log = allLoadedLogs.find(l => l.id === id);
             if (!log) return;
@@ -247,7 +244,6 @@
             validateAndCalculate();
         }
 
-        // 送出資料（自動判斷是新增還是更新）
         async function submitLog() {
             const editId = document.getElementById('editLogId').value;
             const date = document.getElementById('logDate').value;
@@ -262,8 +258,6 @@
             }
 
             const payload = { logDate: date, sleepHours: sleep, steps: steps, moodScore: mood, riskLevel: risk };
-            
-            // 如果有 editId 則是 PUT 修改，沒有則是 POST 新增
             const url = editId ? `/api/health-logs/${editId}` : '/api/health-logs';
             const method = editId ? 'PUT' : 'POST';
 
@@ -283,7 +277,6 @@
             }
         }
 
-        // 刪除日誌功能
         async function deleteLog(id) {
             if (!confirm('🚨 確定要永久刪除這筆健康日誌嗎？此操作不可逆！')) return;
             try {

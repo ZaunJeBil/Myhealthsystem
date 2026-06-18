@@ -11,7 +11,7 @@
     <nav class="bg-indigo-600 text-white shadow-md">
         <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-xl font-bold tracking-wide">📊 智慧健康日誌與多層決策樹評估系統</h1>
-            <span class="bg-indigo-500 px-3 py-1 rounded-full text-sm font-semibold">期末專案展示</span>
+            <span class="bg-indigo-500 px-3 py-1 rounded-full text-sm font-semibold">期末極致改良版</span>
         </div>
     </nav>
 
@@ -19,29 +19,40 @@
         
         <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
             <div>
-                <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">
+                <h2 id="formTitle" class="text-lg font-bold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">
                     <span>📝</span> 新增今日健康日誌
                 </h2>
                 
                 <form id="healthForm" class="space-y-4">
+                    <input type="hidden" id="editLogId" value="">
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">紀錄日期</label>
                         <input type="date" id="logDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">睡眠時間 (小時)</label>
-                        <input type="number" id="sleepHours" step="0.1" min="0" max="24" placeholder="例如: 7.5" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <div class="flex justify-between">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">睡眠時間 (0 - 24 小時)</label>
+                            <span id="sleepError" class="text-xs text-red-500 font-bold hidden">⚠️ 必須介於 0 至 24 之間</span>
+                        </div>
+                        <input type="number" id="sleepHours" step="0.1" placeholder="例如: 7.5" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">今日步數 (步)</label>
-                        <input type="number" id="steps" min="0" placeholder="例如: 8000" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <div class="flex justify-between">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">今日步數 (0 - 99,999 步)</label>
+                            <span id="stepsError" class="text-xs text-red-500 font-bold hidden">⚠️ 必須介於 0 至 99,999 之間</span>
+                        </div>
+                        <input type="number" id="steps" placeholder="例如: 8000" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">心情分數 (1 - 10 分)</label>
-                        <input type="number" id="moodScore" min="1" max="10" placeholder="1 最差，10 最好" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <div class="flex justify-between">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">心情分數 (1 - 10 分)</label>
+                            <span id="moodError" class="text-xs text-red-500 font-bold hidden">⚠️ 必須介於 1 至 10 之間</span>
+                        </div>
+                        <input type="number" id="moodScore" placeholder="1 最差，10 最好" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </form>
             </div>
@@ -54,11 +65,14 @@
                     <span class="text-sm text-gray-600">預測風險等級：</span>
                     <span id="liveRisk" class="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">等待輸入...</span>
                 </div>
-                <p id="liveAdvice" class="text-xs text-gray-500 mt-1 italic">請填寫上方欄位，系統將自動啟動分支決策。</p>
+                <p id="liveAdvice" class="text-xs text-gray-500 mt-1 italic">請填寫正確範圍內的數據，系統將自動啟動分支決策。</p>
             </div>
 
-            <button type="button" onclick="submitLog()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm">
+            <button type="button" id="submitBtn" onclick="submitLog()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 shadow-sm disabled:bg-gray-300 disabled:cursor-not-allowed">
                 💾 儲存日誌並上傳雲端資料庫
+            </button>
+            <button type="button" id="cancelEditBtn" onclick="resetForm()" class="w-full mt-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-1 px-4 rounded-lg transition duration-200 text-sm hidden">
+                取消修改
             </button>
         </div>
 
@@ -78,10 +92,11 @@
                         <thead>
                             <tr class="bg-gray-50 text-gray-500 text-xs tracking-wider uppercase border-b border-gray-100">
                                 <th class="py-3 px-4 font-semibold">日期</th>
-                                <th class="py-3 px-4 font-semibold">睡眠 (小時)</th>
+                                <th class="py-3 px-4 font-semibold">睡眠</th>
                                 <th class="py-3 px-4 font-semibold">步數</th>
                                 <th class="py-3 px-4 font-semibold">心情</th>
-                                <th class="py-3 px-4 font-semibold">決策樹風險特徵</th>
+                                <th class="py-3 px-4 font-semibold">決策風險</th>
+                                <th class="py-3 px-4 font-semibold text-center">操作</th>
                             </tr>
                         </thead>
                         <tbody id="logTableBody" class="text-sm divide-y divide-gray-100 text-gray-600">
@@ -93,86 +108,95 @@
     </main>
 
     <script>
-        // 設定今日日期為預設值
         document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
 
-        // 監聽輸入欄位，實作多層分支決策樹 (No observation method, 純代數邏輯分支)
-        const inputs = ['sleepHours', 'steps', 'moodScore'];
-        inputs.forEach(id => {
-            document.getElementById(id).addEventListener('input', calculateLiveDecisionTree);
+        // 監聽輸入欄位進行即時防禦與決策樹分析
+        const fields = [
+            { id: 'sleepHours', min: 0, max: 24, errId: 'sleepError' },
+            { id: 'steps', min: 0, max: 99999, errId: 'stepsError' },
+            { id: 'moodScore', min: 1, max: 10, errId: 'moodError' }
+        ];
+
+        fields.forEach(field => {
+            document.getElementById(field.id).addEventListener('input', () => {
+                validateAndCalculate();
+            });
         });
+
+        let allLoadedLogs = []; // 快取所有日誌
+
+        function validateAndCalculate() {
+            let hasError = false;
+            
+            fields.forEach(field => {
+                const val = parseFloat(document.getElementById(field.id).value);
+                const errSpan = document.getElementById(field.errId);
+                
+                if (!isNaN(val) && (val < field.min || val > field.max)) {
+                    errSpan.classList.remove('hidden');
+                    hasError = true;
+                } else {
+                    errSpan.classList.add('hidden');
+                }
+            });
+
+            // 如果有數字超出範圍，鎖定儲存按鈕
+            document.getElementById('submitBtn').disabled = hasError;
+
+            if (hasError) {
+                document.getElementById('liveRisk').className = "px-3 py-1 rounded-full text-xs font-bold bg-red-200 text-red-800";
+                document.getElementById('liveRisk').innerText = "數據超限";
+                document.getElementById('liveAdvice').innerText = "請修正紅字欄位之數值，否則系統無法存入資料庫。";
+                return;
+            }
+
+            calculateLiveDecisionTree();
+        }
 
         function calculateLiveDecisionTree() {
             const sleep = parseFloat(document.getElementById('sleepHours').value);
             const steps = parseInt(document.getElementById('steps').value);
             const mood = parseInt(document.getElementById('moodScore').value);
-
             const riskLabel = document.getElementById('liveRisk');
             const adviceLabel = document.getElementById('liveAdvice');
 
-            // 若欄位尚未填齊，不進行決策
-            if (isNaN(sleep) || !steps || !mood) {
+            if (isNaN(sleep) || isNaN(steps) || isNaN(mood)) {
                 riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700";
                 riskLabel.innerText = "等待輸入...";
-                adviceLabel.innerText = "請填寫上方欄位，系統將自動啟動分支決策。";
+                adviceLabel.innerText = "請填寫正確範圍內的數據，系統將自動啟動分支決策。";
                 return;
             }
 
             let risk = "LOW";
-            let advice = "";
+            let advice = "✅ 良好：指標皆在標準代數區間內，決策樹評估為低風險狀態！";
 
-            // 嚴格的多層代數決策樹模型結構 (Multi-layer Decision Tree)
             if (sleep < 6.0) {
-                if (steps < 4000) {
-                    risk = "HIGH";
-                    advice = "⚠️ 警訊：睡眠極度不足且缺乏活動，決策樹將您歸類為高風險，建議立即休息。";
-                } else {
-                    if (mood < 4) {
-                        risk = "HIGH";
-                        advice = "⚠️ 警訊：睡眠不足且情緒低落，觸發高風險分支，請注意身心壓力調節。";
-                    } else {
-                        risk = "MEDIUM";
-                        advice = "💡 提示：雖然今日有活動，但睡眠依舊不足，決策樹評估為中風險。";
-                    }
-                }
+                if (steps < 4000) { risk = "HIGH"; advice = "⚠️ 警訊：睡眠極度不足且缺乏活動，決策樹將您歸類為高風險。"; }
+                else { if (mood < 4) { risk = "HIGH"; advice = "⚠️ 警訊：睡眠不足且情緒低落，觸發高風險分支。"; } 
+                       else { risk = "MEDIUM"; advice = "💡 提示：雖然今日有活動，但睡眠依舊不足，決策樹評估為中風險。"; } }
             } else {
                 if (steps < 3000) {
-                    if (mood < 5) {
-                        risk = "MEDIUM";
-                        advice = "💡 提示：睡眠足夠但活動量與情緒皆偏低，落入中風險決策分支。";
-                    } else {
-                        risk = "LOW";
-                        advice = "✅ 正常：今日呈靜態生活型態，但情緒與睡眠良好，綜合評估為低風險。";
-                    }
-                } else {
-                    risk = "LOW";
-                    advice = "✅ 良好：睡眠、步數與情緒皆在標準代數區間內，決策樹評估為低風險狀態！";
+                    if (mood < 5) { risk = "MEDIUM"; advice = "💡 提示：睡眠足夠但活動量與情緒皆偏低，落入中風險決策分支。"; }
+                    else { risk = "LOW"; advice = "✅ 正常：今日呈靜態生活型態，綜合評估為低風險。"; }
                 }
             }
 
-            // 動態改變前端標籤顏色
-            if (risk === "HIGH") {
-                riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700";
-            } else if (risk === "MEDIUM") {
-                riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700";
-            } else {
-                riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700";
-            }
             riskLabel.innerText = risk;
+            if (risk === "HIGH") riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700";
+            else if (risk === "MEDIUM") riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700";
+            else riskLabel.className = "px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700";
             adviceLabel.innerText = advice;
         }
 
-        // 串接雲端 Java API 撈取 MySQL 歷史數據
         async function fetchLogs() {
             try {
                 const response = await fetch('/api/health-logs');
-                if (!response.ok) throw new Error('無法取得後端資料');
-                const logs = await response.json();
+                allLoadedLogs = await response.json();
                 
                 const tbody = document.getElementById('logTableBody');
                 tbody.innerHTML = '';
 
-                logs.forEach(log => {
+                allLoadedLogs.forEach(log => {
                     let badgeClass = log.riskLevel === 'HIGH' ? 'bg-red-100 text-red-700' : 
                                      log.riskLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700';
                     
@@ -182,58 +206,97 @@
                         <td class="py-3 px-4 font-medium text-gray-900">${log.logDate}</td>
                         <td class="py-3 px-4">${log.sleepHours} 小時</td>
                         <td class="py-3 px-4">${log.steps.toLocaleString()} 步</td>
-                        <td class="py-3 px-4">${log.moodScore} / 10</td>
+                        <td class="py-3 px-4">${log.moodScore}分</td>
                         <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${badgeClass}">${log.riskLevel}</span></td>
+                        <td class="py-3 px-4 text-center space-x-2">
+                            <button onclick="startEdit(${log.id})" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs">✏️ 修改</button>
+                            <button onclick="deleteLog(${log.id})" class="text-red-600 hover:text-red-900 font-medium text-xs">❌ 刪除</button>
+                        </td>
                     `;
                     tbody.appendChild(tr);
                 });
             } catch (error) {
-                console.error('Error fetching logs:', error);
-                // 如果後端 API 還未完全寫好，提供靜態預覽防止畫面空白
-                showMockData();
+                console.error(error);
             }
         }
 
-        function showMockData() {
-            const tbody = document.getElementById('logTableBody');
-            tbody.innerHTML = `
-                <tr class="hover:bg-gray-50"><td class="py-3 px-4">2026-06-18</td><td class="py-3 px-4">5.0 小時</td><td class="py-3 px-4">2,500 步</td><td class="py-3 px-4">3 / 10</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">HIGH</span></td></tr>
-                <tr class="hover:bg-gray-50"><td class="py-3 px-4">2026-06-17</td><td class="py-3 px-4">8.0 小時</td><td class="py-3 px-4">8,500 步</td><td class="py-3 px-4">8 / 10</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">LOW</span></td></tr>
-                <tr class="hover:bg-gray-50"><td class="py-3 px-4">2026-06-16</td><td class="py-3 px-4">6.5 小時</td><td class="py-3 px-4">5,000 步</td><td class="py-3 px-4">5 / 10</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">MEDIUM</span></td></tr>
-            `;
+        // 點擊修改：將資料帶回左側表單
+        function startEdit(id) {
+            const log = allLoadedLogs.find(l => l.id === id);
+            if (!log) return;
+
+            document.getElementById('editLogId').value = log.id;
+            document.getElementById('logDate').value = log.logDate;
+            document.getElementById('sleepHours').value = log.sleepHours;
+            document.getElementById('steps').value = log.steps;
+            document.getElementById('moodScore').value = log.moodScore;
+
+            document.getElementById('formTitle').innerHTML = "<span>✏️</span> 修改健康日誌";
+            document.getElementById('submitBtn').innerText = "💾 更新日誌數據";
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+            validateAndCalculate();
         }
 
-        // 傳送新日誌到雲端 MySQL
+        function resetForm() {
+            document.getElementById('editLogId').value = "";
+            document.getElementById('healthForm').reset();
+            document.getElementById('logDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('formTitle').innerHTML = "<span>📝</span> 新增今日健康日誌";
+            document.getElementById('submitBtn').innerText = "💾 儲存日誌並上傳雲端資料庫";
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+            validateAndCalculate();
+        }
+
+        // 送出資料（自動判斷是新增還是更新）
         async function submitLog() {
+            const editId = document.getElementById('editLogId').value;
             const date = document.getElementById('logDate').value;
             const sleep = parseFloat(document.getElementById('sleepHours').value);
             const steps = parseInt(document.getElementById('steps').value);
             const mood = parseInt(document.getElementById('moodScore').value);
             const risk = document.getElementById('liveRisk').innerText;
 
-            if (!date || isNaN(sleep) || !steps || !mood || risk === "等待輸入...") {
-                alert("請填寫完整的數據以利決策樹計算！");
+            if (!date || isNaN(sleep) || isNaN(steps) || isNaN(mood)) {
+                alert("請填寫正確完整的數據！");
                 return;
             }
 
             const payload = { logDate: date, sleepHours: sleep, steps: steps, moodScore: mood, riskLevel: risk };
+            
+            // 如果有 editId 則是 PUT 修改，沒有則是 POST 新增
+            const url = editId ? `/api/health-logs/${editId}` : '/api/health-logs';
+            const method = editId ? 'PUT' : 'POST';
 
             try {
-                const response = await fetch('/api/health-logs', {
-                    method: 'POST',
+                const response = await fetch(url, {
+                    method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if(response.ok) {
-                    alert('🎉 成功！健康數據已通過決策樹分析，並安全儲存至雲端 MySQL 資料庫。');
+                if (response.ok) {
+                    alert(editId ? '🎉 日誌更新成功！' : '🎉 新增資料成功！');
+                    resetForm();
                     fetchLogs();
                 }
             } catch (error) {
-                alert('已將數據記錄在本地面板（雲端後端連線中）');
+                alert('操作失敗，請檢查網路連線。');
             }
         }
 
-        // 網頁載入時立刻載入 MySQL 資料
+        // 刪除日誌功能
+        async function deleteLog(id) {
+            if (!confirm('🚨 確定要永久刪除這筆健康日誌嗎？此操作不可逆！')) return;
+            try {
+                const response = await fetch(`/api/health-logs/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    alert('❌ 資料已從資料庫中移除。');
+                    fetchLogs();
+                }
+            } catch (error) {
+                alert('刪除失敗');
+            }
+        }
+
         window.onload = fetchLogs;
     </script>
 </body>
